@@ -1,0 +1,15 @@
+# Auto-detect text files and normalize line endings in git.
+* text=auto
+
+# Keep source and docs with LF in repository.
+*.md text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+
+# Common binary assets.
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.webp binary
+*.bin binary
+*.elf binary
