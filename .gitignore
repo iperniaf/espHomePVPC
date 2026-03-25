@@ -1,0 +1,23 @@
+# Secrets and local overrides
+secrets.yaml
+*.secrets.yaml
+
+# ESPHome build output
+.esphome/
+build/
+
+# Firmware artifacts
+*.bin
+*.elf
+*.map
+
+# Logs and temp files
+*.log
+*.tmp
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
