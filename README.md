@@ -124,6 +124,11 @@ As documented in the YAML comments:
 - Never commit real passwords, tokens, or API keys.
 - Before pushing, review entity names and sensitive values in your commit history.
 
+## Contribution and commit style
+
+- This repository uses **Conventional Commits** (for example `feat: ...`, `fix: ...`, `docs: ...`).
+- See `CONTRIBUTING.md` for the full commit convention and examples.
+
 ## License
 
 This project is released under the MIT License. See `LICENSE` for details.
