@@ -2,6 +2,11 @@
 
 This project is specifically built for the **Geekmagic SmallTV Pro** display (ESP32 + ST7789 240x240) and shows electricity data from Home Assistant.
 
+Current firmware stack in this repository:
+
+- ESPHome `2026.3.3`
+- LVGL `8.4.0`
+
 ## Screenshots
 
 ### Dashboard view (current power + current price)
@@ -20,6 +25,20 @@ This project is specifically built for the **Geekmagic SmallTV Pro** display (ES
 - **Dashboard page:** live house power (W/kW) and current energy price (EUR/kWh) using dual arc gauges.
 - **Touch page switch:** GPIO32 touch input toggles between both pages.
 - **Runtime tuning:** threshold values are exposed as template numbers in Home Assistant.
+
+## Rendering and UI model
+
+- UI is implemented with **LVGL** pages/widgets (not custom pixel drawing lambdas).
+- Display driver uses `mipi_spi` + `ST7789V` at `240x240`, with `color_depth: 16`.
+- Dashboard arcs are native LVGL `arc` widgets with runtime updates from Home Assistant sensors.
+
+## Data refresh behavior
+
+- UI refresh runs periodically every `30s`.
+- Dashboard values also refresh **immediately on sensor update** (`pvpc_current_price` and `house_power` `on_value`).
+- Manual page switch triggers an immediate `refresh_ui` run.
+
+This means both screens keep their values warm in the background, and switching pages should show current data right away.
 
 ## Requirements
 
@@ -87,6 +106,28 @@ If your integration uses a different entity or attribute names:
 - update every `attribute` name to match your integration output.
 
 Tip: if your attributes are named differently (for example `hour_00`, `hour_01`, ...), update all 24 entries to keep the display logic consistent.
+
+## Dashboard arc customization
+
+If you want to tune arc direction/placement/behavior, edit `price_value_arc` and `power_arc` in `esphome-pvpc.yaml`:
+
+- geometry: `x`, `y`, `width`, `height`
+- angle span: `start_angle`, `end_angle`
+- direction: `mode` (`NORMAL` / `REVERSE`)
+- orientation: `rotation`
+- thickness/colors: `arc_width`, `arc_color`, `indicator.arc_width`, `indicator.arc_color`
+
+Runtime value mapping is done in `refresh_ui`:
+
+```cpp
+lv_arc_set_value(id(power_arc), (int) (power_norm * 100.0f));
+lv_arc_set_value(id(price_value_arc), (int) (price_norm * 100.0f));
+```
+
+Where:
+
+- `power_norm` comes from `house_power / power_max_w`
+- `price_norm` comes from `(pvpc_current_price - price_min_eur) / (price_max_eur - price_min_eur)`
 
 ## Initial setup
 
