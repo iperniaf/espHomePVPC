@@ -88,7 +88,7 @@ font:
 
   - file: "gfonts://Stack+Sans+Notch"
     id: font_large
-    size: 28
+    size: 26
 
   - file: "gfonts://Stack+Sans+Notch"
     id: font_medium
@@ -97,7 +97,7 @@ font:
 
   - file: "gfonts://Stack+Sans+Notch"
     id: font_row
-    size: 32
+    size: 30
 
 
 color:
