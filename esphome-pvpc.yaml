@@ -1,6 +1,11 @@
 esphome:
   name: geekmagic
   friendly_name: Mini Display TV
+  on_boot:
+    priority: -10
+    then:
+      - lvgl.page.show: page_hourly
+      - script.execute: refresh_ui
 
 
 esp32:
@@ -179,271 +184,466 @@ number:
     step: 100
 
 
-display:  
+display:
   - platform: mipi_spi
     model: st7789v
     spi_id: spihwd
-    dimensions: 
+    dimensions:
       height: 240
       width: 240
       offset_height: 0
       offset_width: 0
-    invert_colors: true    
+    invert_colors: true
     dc_pin: GPIO02
     reset_pin: GPIO04
-    #backlight_pin: GPIO25
-    color_depth: 8
-    #update_interval: never
-    update_interval: 30s
+    color_depth: 16
+    update_interval: never
+    auto_clear_enabled: false
     id: disp
     spi_mode: mode3
-    lambda: |-
-      it.fill(Color::BLACK);
-      auto now = id(current_time).now();
-      if (!now.is_valid()) {
-        it.printf(16, 108, id(font_large), Color::WHITE, "Esperando hora...");
-        return;
-      }
 
-      auto parse_price = [](const std::string &raw) -> float {
-        if (raw.empty()) {
-          return NAN;
-        }
-        std::string filtered;
-        filtered.reserve(raw.size());
-        for (char c : raw) {
-          if ((c >= '0' && c <= '9') || c == ',' || c == '.' || c == '-') {
-            filtered.push_back(c);
-          }
-        }
-        if (filtered.empty()) {
-          return NAN;
-        }
-        for (char &c : filtered) {
-          if (c == ',') {
-            c = '.';
-          }
-        }
-        return strtof(filtered.c_str(), nullptr);
-      };
 
-      float prices[24] = {
-        parse_price(id(price_00h).state), parse_price(id(price_01h).state), parse_price(id(price_02h).state), parse_price(id(price_03h).state),
-        parse_price(id(price_04h).state), parse_price(id(price_05h).state), parse_price(id(price_06h).state), parse_price(id(price_07h).state),
-        parse_price(id(price_08h).state), parse_price(id(price_09h).state), parse_price(id(price_10h).state), parse_price(id(price_11h).state),
-        parse_price(id(price_12h).state), parse_price(id(price_13h).state), parse_price(id(price_14h).state), parse_price(id(price_15h).state),
-        parse_price(id(price_16h).state), parse_price(id(price_17h).state), parse_price(id(price_18h).state), parse_price(id(price_19h).state),
-        parse_price(id(price_20h).state), parse_price(id(price_21h).state), parse_price(id(price_22h).state), parse_price(id(price_23h).state)
-      };
+lvgl:
+  displays:
+    - disp
+  pages:
+    - id: page_hourly
+      widgets:
+        - obj:
+            x: 0
+            y: 0
+            width: 240
+            height: 240
+            radius: 0
+            border_width: 0
+            bg_color: 0x000000
+        - obj:
+            id: row1_box
+            x: 6
+            y: 15
+            width: 34
+            height: 34
+            radius: 0
+            border_width: 0
+            bg_color: 0x005000
+        - label:
+            id: row1_price
+            x: 48
+            y: 10
+            text: "--"
+            text_font: font_row
+            text_color: 0xFFFFFF
+        - label:
+            id: row1_euro
+            x: 170
+            y: 10
+            text: ""
+            text_font: font_large
+            text_color: 0x00B400
 
-      float max_price = 0.0f;
-      for (int i = 0; i < 24; i++) {
-        if (!isnan(prices[i]) && prices[i] > max_price) {
-          max_price = prices[i];
-        }
-      }
+        - obj:
+            id: row2_box
+            x: 6
+            y: 71
+            width: 34
+            height: 34
+            radius: 0
+            border_width: 0
+            bg_color: 0x005000
+        - label:
+            id: row2_price
+            x: 48
+            y: 66
+            text: "--"
+            text_font: font_row
+            text_color: 0xFFFFFF
+        - label:
+            id: row2_euro
+            x: 170
+            y: 66
+            text: ""
+            text_font: font_large
+            text_color: 0x00B400
 
-      float cfg_color_yellow = id(price_color_yellow_from).state;
-      float cfg_color_red = id(price_color_red_from).state;
-      float cfg_euro_2 = id(euro_2_from).state;
-      float cfg_euro_3 = id(euro_3_from).state;
-      float cfg_price_min = id(price_min_eur).state;
-      float cfg_price_max = id(price_max_eur).state;
-      float cfg_power_max = id(power_max_w).state;
+        - obj:
+            id: row3_box
+            x: 6
+            y: 127
+            width: 34
+            height: 34
+            radius: 0
+            border_width: 0
+            bg_color: 0x005000
+        - label:
+            id: row3_price
+            x: 48
+            y: 122
+            text: "--"
+            text_font: font_row
+            text_color: 0xFFFFFF
+        - label:
+            id: row3_euro
+            x: 170
+            y: 122
+            text: ""
+            text_font: font_large
+            text_color: 0x00B400
 
-      if (isnan(cfg_color_yellow)) cfg_color_yellow = 0.50f;
-      if (isnan(cfg_color_red)) cfg_color_red = 0.70f;
-      if (cfg_color_red < cfg_color_yellow) {
-        float tmp = cfg_color_red;
-        cfg_color_red = cfg_color_yellow;
-        cfg_color_yellow = tmp;
-      }
+        - obj:
+            id: row4_box
+            x: 6
+            y: 183
+            width: 34
+            height: 34
+            radius: 0
+            border_width: 0
+            bg_color: 0x005000
+        - label:
+            id: row4_price
+            x: 48
+            y: 178
+            text: "--"
+            text_font: font_row
+            text_color: 0xFFFFFF
+        - label:
+            id: row4_euro
+            x: 170
+            y: 178
+            text: ""
+            text_font: font_large
+            text_color: 0x00B400
+    - id: page_dashboard
+      widgets:
+        - obj:
+            x: 0
+            y: 0
+            width: 240
+            height: 240
+            radius: 0
+            border_width: 0
+            bg_color: 0x000000
+        - arc:
+            id: power_arc
+            align: CENTER
+            x: 0
+            y: -12
+            width: 188
+            height: 188
+            min_value: 0
+            max_value: 100
+            value: 0
+            start_angle: 200
+            end_angle: 340
+            arc_width: 20
+            arc_color: 0x373737
+            indicator:
+              arc_width: 20
+              arc_color: 0x00C850
+            adjustable: false
 
-      if (isnan(cfg_euro_2)) cfg_euro_2 = 0.10f;
-      if (isnan(cfg_euro_3)) cfg_euro_3 = 0.20f;
-      if (cfg_euro_3 < cfg_euro_2) {
-        float tmp = cfg_euro_3;
-        cfg_euro_3 = cfg_euro_2;
-        cfg_euro_2 = tmp;
-      }
+        - arc:
+            id: price_value_arc
+            align: CENTER
+            x: 0
+            y: 12
+            width: 188
+            height: 188
+            min_value: 0
+            max_value: 100
+            value: 100
+            start_angle: 20
+            end_angle: 160
+            arc_width: 20
+            arc_color: 0x373737
+            indicator:
+              arc_width: 20
+              arc_color: 0x00C850
+            adjustable: false
+            mode: REVERSE
+            rotation: 0
 
-      if (isnan(cfg_price_min)) cfg_price_min = 0.05f;
-      if (isnan(cfg_price_max)) cfg_price_max = 0.30f;
-      if (cfg_price_max <= cfg_price_min) {
-        cfg_price_max = cfg_price_min + 0.01f;
-      }
+        - label:
+            id: dashboard_power_min
+            x: 22
+            y: 94
+            text: "0W"
+            text_font: font_small
+            text_color: 0xAAAAAA
+        - label:
+            id: dashboard_power_max
+            x: 178
+            y: 94
+            text: "3500W"
+            text_font: font_small
+            text_color: 0xAAAAAA
+        - label:
+            id: dashboard_price_min
+            x: 18
+            y: 128
+            text: "0.05"
+            text_font: font_small
+            text_color: 0xAAAAAA
+        - label:
+            id: dashboard_price_max
+            x: 188
+            y: 128
+            text: "0.30"
+            text_font: font_small
+            text_color: 0xAAAAAA
 
-      if (isnan(cfg_power_max) || cfg_power_max <= 0.0f) {
-        cfg_power_max = 3500.0f;
-      }
+        - label:
+            id: dashboard_power_value
+            align: TOP_MID
+            y: 88
+            text: "--"
+            text_font: font_medium
+            text_color: 0xFFFFFF
+        - label:
+            id: dashboard_price_value
+            align: TOP_MID
+            y: 118
+            text: "--"
+            text_font: font_large
+            text_color: 0xFFFFFF
+        - label:
+            id: dashboard_price_unit
+            x: 66
+            y: 148
+            text: "EUR/kWh"
+            text_font: font_small
+            text_color: 0xB4B4B4
 
-      if (id(screen_page) == 1) {
-        const float pi = 3.14159265f;
-        auto clamp01 = [](float v) -> float {
-          if (v < 0.0f) return 0.0f;
-          if (v > 1.0f) return 1.0f;
-          return v;
-        };
-        auto draw_arc = [&](int cx, int cy, int r, int thick, int start_deg, int end_deg, float ratio, Color track, Color active, int step) {
-          int start = start_deg;
-          int end = end_deg;
-          if (step > 0 && end < start) {
-            end += 360;
-          }
-          if (step < 0 && end > start) {
-            end -= 360;
-          }
 
-          int total = step > 0 ? (end - start) : (start - end);
-          int active_len = (int) (total * clamp01(ratio));
-
-          if (step > 0) {
-            for (int d = start; d <= end; d++) {
-              float rad = (d % 360) * pi / 180.0f;
-              float c = cosf(rad);
-              float s = sinf(rad);
-              for (int t = 0; t < thick; t++) {
-                int rr = r - t;
-                int x = (int) (cx + c * rr);
-                int y = (int) (cy + s * rr);
-                it.draw_pixel_at(x, y, track);
+script:
+  - id: refresh_ui
+    mode: restart
+    then:
+      - lambda: |-
+          auto parse_price = [](const std::string &raw) -> float {
+            if (raw.empty()) {
+              return NAN;
+            }
+            std::string filtered;
+            filtered.reserve(raw.size());
+            for (char c : raw) {
+              if ((c >= '0' && c <= '9') || c == ',' || c == '.' || c == '-') {
+                filtered.push_back(c);
               }
             }
-            int active_end = start + active_len;
-            for (int d = start; d <= active_end; d++) {
-              float rad = (d % 360) * pi / 180.0f;
-              float c = cosf(rad);
-              float s = sinf(rad);
-              for (int t = 0; t < thick; t++) {
-                int rr = r - t;
-                int x = (int) (cx + c * rr);
-                int y = (int) (cy + s * rr);
-                it.draw_pixel_at(x, y, active);
+            if (filtered.empty()) {
+              return NAN;
+            }
+            for (char &c : filtered) {
+              if (c == ',') {
+                c = '.';
               }
+            }
+            return strtof(filtered.c_str(), nullptr);
+          };
+
+          auto clamp01 = [](float v) -> float {
+            if (v < 0.0f) return 0.0f;
+            if (v > 1.0f) return 1.0f;
+            return v;
+          };
+
+          auto format_2dec = [](float value) -> std::string {
+            bool neg = value < 0.0f;
+            if (neg) value = -value;
+            int scaled = (int) lroundf(value * 100.0f);
+            int whole = scaled / 100;
+            int frac = scaled % 100;
+            char out[24];
+            snprintf(out, sizeof(out), neg ? "-%d.%02d" : "%d.%02d", whole, frac);
+            return std::string(out);
+          };
+
+          float prices[24] = {
+            parse_price(id(price_00h).state), parse_price(id(price_01h).state), parse_price(id(price_02h).state), parse_price(id(price_03h).state),
+            parse_price(id(price_04h).state), parse_price(id(price_05h).state), parse_price(id(price_06h).state), parse_price(id(price_07h).state),
+            parse_price(id(price_08h).state), parse_price(id(price_09h).state), parse_price(id(price_10h).state), parse_price(id(price_11h).state),
+            parse_price(id(price_12h).state), parse_price(id(price_13h).state), parse_price(id(price_14h).state), parse_price(id(price_15h).state),
+            parse_price(id(price_16h).state), parse_price(id(price_17h).state), parse_price(id(price_18h).state), parse_price(id(price_19h).state),
+            parse_price(id(price_20h).state), parse_price(id(price_21h).state), parse_price(id(price_22h).state), parse_price(id(price_23h).state)
+          };
+
+          float max_price = 0.0f;
+          for (int i = 0; i < 24; i++) {
+            if (!isnan(prices[i]) && prices[i] > max_price) {
+              max_price = prices[i];
+            }
+          }
+
+          float cfg_color_yellow = id(price_color_yellow_from).state;
+          float cfg_color_red = id(price_color_red_from).state;
+          float cfg_euro_2 = id(euro_2_from).state;
+          float cfg_euro_3 = id(euro_3_from).state;
+          float cfg_price_min = id(price_min_eur).state;
+          float cfg_price_max = id(price_max_eur).state;
+          float cfg_power_max = id(power_max_w).state;
+
+          if (isnan(cfg_color_yellow)) cfg_color_yellow = 0.50f;
+          if (isnan(cfg_color_red)) cfg_color_red = 0.70f;
+          if (cfg_color_red < cfg_color_yellow) {
+            float tmp = cfg_color_red;
+            cfg_color_red = cfg_color_yellow;
+            cfg_color_yellow = tmp;
+          }
+
+          if (isnan(cfg_euro_2)) cfg_euro_2 = 0.10f;
+          if (isnan(cfg_euro_3)) cfg_euro_3 = 0.20f;
+          if (cfg_euro_3 < cfg_euro_2) {
+            float tmp = cfg_euro_3;
+            cfg_euro_3 = cfg_euro_2;
+            cfg_euro_2 = tmp;
+          }
+
+          if (isnan(cfg_price_min)) cfg_price_min = 0.05f;
+          if (isnan(cfg_price_max)) cfg_price_max = 0.30f;
+          if (cfg_price_max <= cfg_price_min) {
+            cfg_price_max = cfg_price_min + 0.01f;
+          }
+
+          if (isnan(cfg_power_max) || cfg_power_max <= 0.0f) {
+            cfg_power_max = 3500.0f;
+          }
+
+          {
+            auto now = id(current_time).now();
+            lv_obj_t *boxes[4] = {id(row1_box), id(row2_box), id(row3_box), id(row4_box)};
+            lv_obj_t *price_labels[4] = {id(row1_price), id(row2_price), id(row3_price), id(row4_price)};
+            lv_obj_t *euro_labels[4] = {id(row1_euro), id(row2_euro), id(row3_euro), id(row4_euro)};
+
+            if (now.is_valid()) {
+              for (int row = 0; row < 4; row++) {
+                const int hour = (now.hour + row) % 24;
+                const float price = prices[hour];
+
+                if (isnan(price)) {
+                  lv_label_set_text_fmt(price_labels[row], "%02dh --", hour);
+                  lv_label_set_text(euro_labels[row], "");
+                  lv_obj_set_style_bg_color(boxes[row], lv_color_hex(0x505050), LV_PART_MAIN);
+                  continue;
+                }
+
+                float idx = max_price > 0.0f ? (price / max_price) : 0.0f;
+                uint32_t box_color = 0x00B400;
+                if (idx > cfg_color_red) {
+                  box_color = 0xDC0000;
+                } else if (idx >= cfg_color_yellow) {
+                  box_color = 0xDCB400;
+                }
+                lv_obj_set_style_bg_color(boxes[row], lv_color_hex(box_color), LV_PART_MAIN);
+
+                int euro_count = 1;
+                uint32_t euro_color = 0x00B400;
+                if (price > cfg_euro_3) {
+                  euro_count = 3;
+                  euro_color = 0xDC0000;
+                } else if (price >= cfg_euro_2) {
+                  euro_count = 2;
+                  euro_color = 0xDCB400;
+                }
+
+                std::string price_txt = format_2dec(price);
+                char row_text[32];
+                snprintf(row_text, sizeof(row_text), "%02dh %s", hour, price_txt.c_str());
+                lv_label_set_text(price_labels[row], row_text);
+                if (euro_count == 1) {
+                  lv_label_set_text(euro_labels[row], "\xE2\x82\xAC");
+                  lv_obj_set_x(euro_labels[row], 206);
+                } else if (euro_count == 2) {
+                  lv_label_set_text(euro_labels[row], "\xE2\x82\xAC\xE2\x82\xAC");
+                  lv_obj_set_x(euro_labels[row], 188);
+                } else {
+                  lv_label_set_text(euro_labels[row], "\xE2\x82\xAC\xE2\x82\xAC\xE2\x82\xAC");
+                  lv_obj_set_x(euro_labels[row], 170);
+                }
+                lv_obj_set_style_text_color(euro_labels[row], lv_color_hex(euro_color), LV_PART_MAIN);
+              }
+            } else {
+              for (int row = 0; row < 4; row++) {
+                lv_label_set_text(price_labels[row], "--");
+                lv_label_set_text(euro_labels[row], "");
+                lv_obj_set_style_bg_color(boxes[row], lv_color_hex(0x505050), LV_PART_MAIN);
+              }
+            }
+          }
+
+          const float power_w = id(house_power).state;
+          const float price = id(pvpc_current_price).state;
+          const bool power_ok = !isnan(power_w);
+          const bool price_ok = !isnan(price);
+
+          const float power_norm = power_ok ? clamp01(power_w / cfg_power_max) : 0.0f;
+          const float price_span = cfg_price_max - cfg_price_min;
+          const float price_norm = price_ok ? clamp01((price - cfg_price_min) / price_span) : 0.0f;
+
+          uint32_t power_color = 0x00C850;
+          if (power_norm > 0.8f) {
+            power_color = 0xDC1E1E;
+          } else if (power_norm >= 0.5f) {
+            power_color = 0xEBB414;
+          }
+
+          uint32_t price_color = 0x00C850;
+          if (price_norm > 0.7f) {
+            price_color = 0xDC1E1E;
+          } else if (price_norm >= 0.4f) {
+            price_color = 0xEBB414;
+          }
+
+          const int power_target = (int) (power_norm * 100.0f);
+          const int price_target = (int) (price_norm * 100.0f);
+
+          lv_obj_set_style_arc_color(id(power_arc), lv_color_hex(power_color), LV_PART_INDICATOR);
+          lv_obj_set_style_arc_color(id(price_value_arc), lv_color_hex(price_color), LV_PART_INDICATOR);
+
+          lv_arc_set_value(id(power_arc), power_target);
+          lv_arc_set_value(id(price_value_arc), price_target);
+
+          {
+            char power_max_text[16];
+            snprintf(power_max_text, sizeof(power_max_text), "%dW", (int) lroundf(cfg_power_max));
+            lv_label_set_text(id(dashboard_power_max), power_max_text);
+          }
+          {
+            std::string price_min_txt = format_2dec(cfg_price_min);
+            lv_label_set_text(id(dashboard_price_min), price_min_txt.c_str());
+          }
+          {
+            std::string price_max_txt = format_2dec(cfg_price_max);
+            lv_label_set_text(id(dashboard_price_max), price_max_txt.c_str());
+          }
+
+          if (power_ok) {
+            if (power_w >= 1000.0f || power_w <= -1000.0f) {
+              std::string kw_txt = format_2dec(power_w / 1000.0f);
+              std::string power_text = kw_txt + " kW";
+              lv_label_set_text(id(dashboard_power_value), power_text.c_str());
+            } else {
+              char power_text[16];
+              snprintf(power_text, sizeof(power_text), "%d W", (int) lroundf(power_w));
+              lv_label_set_text(id(dashboard_power_value), power_text);
             }
           } else {
-            for (int d = start; d >= end; d--) {
-              float rad = (d % 360) * pi / 180.0f;
-              float c = cosf(rad);
-              float s = sinf(rad);
-              for (int t = 0; t < thick; t++) {
-                int rr = r - t;
-                int x = (int) (cx + c * rr);
-                int y = (int) (cy + s * rr);
-                it.draw_pixel_at(x, y, track);
-              }
-            }
-            int active_end = start - active_len;
-            for (int d = start; d >= active_end; d--) {
-              float rad = (d % 360) * pi / 180.0f;
-              float c = cosf(rad);
-              float s = sinf(rad);
-              for (int t = 0; t < thick; t++) {
-                int rr = r - t;
-                int x = (int) (cx + c * rr);
-                int y = (int) (cy + s * rr);
-                it.draw_pixel_at(x, y, active);
-              }
-            }
+            lv_label_set_text(id(dashboard_power_value), "--");
           }
-        };
 
-        const float power_w = id(house_power).state;
-        const float price = id(pvpc_current_price).state;
-        const bool power_ok = !isnan(power_w);
-        const bool price_ok = !isnan(price);
-
-        const float power_norm = power_ok ? clamp01(power_w / cfg_power_max) : 0.0f;
-        const float price_span = cfg_price_max - cfg_price_min;
-        const float price_norm = price_ok ? clamp01((price - cfg_price_min) / price_span) : 0.0f;
-
-        Color power_color = Color(0, 200, 80);
-        if (power_norm > 0.8f) {
-          power_color = Color(220, 30, 30);
-        } else if (power_norm >= 0.5f) {
-          power_color = Color(235, 180, 20);
-        }
-
-        Color price_color = Color(0, 200, 80);
-        if (price_norm > 0.7f) {
-          price_color = Color(220, 30, 30);
-        } else if (price_norm >= 0.4f) {
-          price_color = Color(235, 180, 20);
-        }
-
-        draw_arc(120, 120, 92, 20, 200, 340, power_norm, Color(55, 55, 55), power_color, 1);
-        draw_arc(120, 120, 92, 20, 160, 20, price_norm, Color(55, 55, 55), price_color, -1);
-
-        it.printf(22, 94, id(font_small), Color(170, 170, 170), "0W");
-        it.printf(178, 94, id(font_small), Color(170, 170, 170), "%.0fW", cfg_power_max);
-        it.printf(18, 128, id(font_small), Color(170, 170, 170), "%.2f", cfg_price_min);
-        it.printf(188, 128, id(font_small), Color(170, 170, 170), "%.2f", cfg_price_max);
-
-        if (power_ok) {
-          if (power_w >= 1000.0f || power_w <= -1000.0f) {
-            it.printf(120, 88, id(font_medium), Color::WHITE, TextAlign::TOP_CENTER, "%.2f kW", power_w / 1000.0f);
+          if (price_ok) {
+            std::string price_txt = format_2dec(price);
+            std::string price_value = price_txt + " \xE2\x82\xAC";
+            lv_label_set_text(id(dashboard_price_value), price_value.c_str());
           } else {
-            it.printf(120, 88, id(font_medium), Color::WHITE, TextAlign::TOP_CENTER, "%.0f W", power_w);
+            lv_label_set_text(id(dashboard_price_value), "--");
           }
-        } else {
-          it.printf(120, 88, id(font_medium), Color::WHITE, TextAlign::TOP_CENTER, "--");
-        }
+          lv_obj_set_style_text_color(id(dashboard_price_value), lv_color_hex(price_color), LV_PART_MAIN);
 
-        if (price_ok) {
-          it.printf(120, 118, id(font_large), price_color, TextAlign::TOP_CENTER, "%.2f \xE2\x82\xAC", price);
-          it.printf(66, 148, id(font_small), Color(180, 180, 180), "EUR/kWh");
-        } else {
-          it.printf(120, 118, id(font_large), Color::WHITE, TextAlign::TOP_CENTER, "--");
-          it.printf(66, 148, id(font_small), Color(180, 180, 180), "EUR/kWh");
-        }
 
-        return;
-      }
-
-      for (int row = 0; row < 4; row++) {
-        const int hour = (now.hour + row) % 24;
-        const int y = 10 + row * 56;
-        const float price = prices[hour];
-
-        if (isnan(price)) {
-          it.filled_rectangle(6, y + 5, 34, 34, Color(80, 80, 80));
-          it.printf(48, y, id(font_row), Color::WHITE, "%02dh --", hour);
-          continue;
-        }
-
-        float idx = 0.0f;
-        if (max_price > 0.0f) {
-          idx = price / max_price;
-        }
-
-        Color box_color = Color(0, 180, 0);
-        if (idx > cfg_color_red) {
-          box_color = Color(220, 0, 0);
-        } else if (idx >= cfg_color_yellow) {
-          box_color = Color(220, 180, 0);
-        }
-        it.filled_rectangle(6, y + 5, 34, 34, box_color);
-
-        int euro_count = 1;
-        Color euro_color = Color(0, 180, 0);
-        if (price > cfg_euro_3) {
-          euro_count = 3;
-          euro_color = Color(220, 0, 0);
-        } else if (price >= cfg_euro_2) {
-          euro_count = 2;
-          euro_color = Color(220, 180, 0);
-        }
-
-        it.printf(48, y, id(font_row), Color::WHITE, "%02dh %.2f", hour, price);
-
-        if (euro_count == 1) {
-          it.printf(206, y, id(font_large), euro_color, "\xE2\x82\xAC");
-        } else if (euro_count == 2) {
-          it.printf(188, y, id(font_large), euro_color, "\xE2\x82\xAC\xE2\x82\xAC");
-        } else {
-          it.printf(170, y, id(font_large), euro_color, "\xE2\x82\xAC\xE2\x82\xAC\xE2\x82\xAC");
-        }
-      }
+interval:
+  - interval: 30s
+    then:
+      - script.execute: refresh_ui
 
 
 sensor:
@@ -451,11 +651,17 @@ sensor:
     id: pvpc_current_price
     entity_id: sensor.esios_pvpc_2
     accuracy_decimals: 2
+    on_value:
+      then:
+        - script.execute: refresh_ui
 
   - platform: homeassistant
     id: house_power
     entity_id: sensor.sensor_consumo_electrico_power
     accuracy_decimals: 0
+    on_value:
+      then:
+        - script.execute: refresh_ui
 
 text_sensor:
   - platform: homeassistant
@@ -586,10 +792,17 @@ binary_sensor:
     threshold: 1250
     on_press:
       then:
-        - lambda: |-
-            ESP_LOGI("button", "Pulsacion tactil en GPIO32");
-            id(screen_page) = (id(screen_page) + 1) % 2;
-            id(disp).update();
+        - if:
+            condition:
+              lambda: return id(screen_page) == 0;
+            then:
+              - lambda: id(screen_page) = 1;
+              - lvgl.page.show: page_dashboard
+              - script.execute: refresh_ui
+            else:
+              - lambda: id(screen_page) = 0;
+              - lvgl.page.show: page_hourly
+              - script.execute: refresh_ui
 
 
 time:
