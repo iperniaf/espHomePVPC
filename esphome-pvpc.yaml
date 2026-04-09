@@ -201,6 +201,20 @@ number:
     max_value: 10000
     step: 100
 
+  - platform: template
+    name: "Backlight Level"
+    id: backlight_level
+    optimistic: true
+    restore_value: true
+    initial_value: 100
+    min_value: 1
+    max_value: 100
+    step: 1
+    set_action:
+      - light.turn_on:
+          id: backlight
+          brightness: !lambda "return x / 100.0f;"
+
 
 display:
   - platform: mipi_spi
