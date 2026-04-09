@@ -84,6 +84,16 @@ globals:
     restore_value: no
     initial_value: '0'
 
+  - id: last_hourly_current_color
+    type: int
+    restore_value: no
+    initial_value: '0x00B400'
+
+  - id: last_hourly_current_color_valid
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+
 
 font:
   - file: "gfonts://Stack+Sans+Notch"
@@ -103,6 +113,14 @@ font:
   - file: "gfonts://Stack+Sans+Notch"
     id: font_row
     size: 29
+
+  - file: "gfonts://Stack+Sans+Notch"
+    id: font_dashboard_power
+    size: 34
+
+  - file: "gfonts://Stack+Sans+Notch"
+    id: font_dashboard_price
+    size: 35
 
 
 color:
@@ -357,7 +375,7 @@ lvgl:
             arc_color: 0x373737
             indicator:
               arc_width: 20
-              arc_color: 0x00C850
+              arc_color: 0x00B400
             adjustable: false
             mode: REVERSE
             rotation: 0
@@ -396,19 +414,19 @@ lvgl:
             align: TOP_MID
             y: 88
             text: "--"
-            text_font: font_medium
+            text_font: font_dashboard_power
             text_color: 0xFFFFFF
         - label:
             id: dashboard_price_value
             align: TOP_MID
             y: 118
             text: "--"
-            text_font: font_large
+            text_font: font_dashboard_price
             text_color: 0xFFFFFF
         - label:
             id: dashboard_price_unit
             x: 66
-            y: 148
+            y: 154
             text: "EUR/kWh"
             text_font: font_small
             text_color: 0xB4B4B4
@@ -508,6 +526,12 @@ script:
             cfg_power_max = 3500.0f;
           }
 
+          auto now_for_color = id(current_time).now();
+          float hourly_current_price = NAN;
+          if (now_for_color.is_valid()) {
+            hourly_current_price = prices[now_for_color.hour];
+          }
+
           {
             auto now = id(current_time).now();
             lv_obj_t *boxes[4] = {id(row1_box), id(row2_box), id(row3_box), id(row4_box)};
@@ -545,6 +569,11 @@ script:
                   euro_color = 0xDCB400;
                 }
 
+                if (row == 0) {
+                  id(last_hourly_current_color) = (int) euro_color;
+                  id(last_hourly_current_color_valid) = true;
+                }
+
                 std::string price_txt = format_2dec(price);
                 char row_text[32];
                 snprintf(row_text, sizeof(row_text), "%02dh %s", hour, price_txt.c_str());
@@ -574,6 +603,8 @@ script:
           const float price = id(pvpc_current_price).state;
           const bool power_ok = !isnan(power_w);
           const bool price_ok = !isnan(price);
+          const float raw_price_for_color = !isnan(hourly_current_price) ? hourly_current_price : price;
+          const float price_for_color = !isnan(raw_price_for_color) ? (roundf(raw_price_for_color * 100.0f) / 100.0f) : NAN;
 
           const float power_norm = power_ok ? clamp01(power_w / cfg_power_max) : 0.0f;
           const float price_span = cfg_price_max - cfg_price_min;
@@ -586,11 +617,17 @@ script:
             power_color = 0xEBB414;
           }
 
-          uint32_t price_color = 0x00C850;
-          if (price_norm > 0.7f) {
-            price_color = 0xDC1E1E;
-          } else if (price_norm >= 0.4f) {
-            price_color = 0xEBB414;
+          uint32_t price_color = 0x00B400;
+          if (id(last_hourly_current_color_valid)) {
+            price_color = (uint32_t) id(last_hourly_current_color);
+          } else if (price_ok) {
+            if (price_for_color > cfg_euro_3) {
+              price_color = 0xDC0000;
+            } else if (price_for_color >= cfg_euro_2) {
+              price_color = 0xDCB400;
+            }
+          } else {
+            price_color = 0xFFFFFF;
           }
 
           const int power_target = (int) (power_norm * 100.0f);
