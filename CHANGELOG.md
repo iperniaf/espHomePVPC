@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/iperniaf/espHomePVPC/compare/v1.2.0...v1.3.0) (2026-04-10)
+
+
+### Features
+
+* **display:** add HA backlight slider and unify arc palette ([#14](https://github.com/iperniaf/espHomePVPC/issues/14)) ([d0ad834](https://github.com/iperniaf/espHomePVPC/commit/d0ad834af101655448d4615b41983fe96b78d46b))
+
 ## [1.2.0](https://github.com/iperniaf/espHomePVPC/compare/v1.1.1...v1.2.0) (2026-04-09)
 
 
