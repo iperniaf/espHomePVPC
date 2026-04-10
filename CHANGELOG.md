@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/iperniaf/espHomePVPC/compare/v1.1.1...v1.2.0) (2026-04-09)
+
+
+### Features
+
+* **esphome:** expose backlight level slider in Home Assistant ([#12](https://github.com/iperniaf/espHomePVPC/issues/12)) ([5b62868](https://github.com/iperniaf/espHomePVPC/commit/5b62868f77ddace625765e0b7f3c033eedb396c5))
+
 ## [1.1.1](https://github.com/iperniaf/espHomePVPC/compare/v1.1.0...v1.1.1) (2026-04-09)
 
 
