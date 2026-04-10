@@ -624,11 +624,11 @@ script:
           const float price_span = cfg_price_max - cfg_price_min;
           const float price_norm = price_ok ? clamp01((price - cfg_price_min) / price_span) : 0.0f;
 
-          uint32_t power_color = 0x00C850;
+          uint32_t power_color = 0x00B400;
           if (power_norm > 0.8f) {
-            power_color = 0xDC1E1E;
+            power_color = 0xDC0000;
           } else if (power_norm >= 0.5f) {
-            power_color = 0xEBB414;
+            power_color = 0xDCB400;
           }
 
           uint32_t price_color = 0x00B400;
